@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Para ti</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #4a3428;
+    --rose: #a86a72;
+    --line: rgba(120, 85, 60, 0.3);
+    --ease: cubic-bezier(.22, .61, .36, 1);
+    --text-size: clamp(0.98rem, min(1.9vw, 2.5vh), 1.18rem);
+    --noise: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='4' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .4  0 0 0 0 .28  0 0 0 0 .16  0 0 0 .22 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html {
+    height: 100%;
+    background: #cdb08a;
+  }
+
+  body {
+    position: relative;
+    z-index: 0;
+    height: 100%;
+    overflow: hidden;
+    background: transparent;
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: var(--text-size);
+    font-weight: 500;
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Fondo vintage con viñeta y textura */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: #e9d9c0 url("fondo-vintage.jpg") center / cover no-repeat;
+    z-index: -2;
+  }
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at center, rgba(255,247,235,0) 45%, rgba(60,40,25,.25) 100%);
+    z-index: -1;
+    pointer-events: none;
+  }
+
+  /* Celulares en vertical: se muestra la altura completa y se desplaza
+     hacia la zona con flores para que no se corten */
+  @media (max-aspect-ratio: 1/1) {
+    body::before {
+      background-size: auto 100%;
+      background-position: 62% center;
+    }
+  }
+
+  /* Pantallas */
+  .page {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: calc(env(safe-area-inset-top) + 3.8rem) 1rem calc(env(safe-area-inset-bottom) + 5rem);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(12px);
+    transition: opacity .7s var(--ease), transform .7s var(--ease), visibility .7s;
+  }
+  .page.active { opacity: 1; visibility: visible; transform: none; }
+  .page.leaving { transform: translateY(-12px); }
+
+  /* Hoja de papel envejecido */
+  .sheet {
+    position: relative;
+    width: min(600px, 100%);
+    max-height: 100%;
+    filter: drop-shadow(0 14px 18px rgba(50,30,15,.35)) drop-shadow(0 2px 3px rgba(50,30,15,.25));
+  }
+  .card {
+    position: relative;
+    padding: clamp(1.2rem, 3.2vh, 2.2rem) clamp(1.3rem, 4vw, 2.6rem);
+    background-color: #f3e6cd;
+    background-image:
+      var(--noise),
+      radial-gradient(ellipse at 15% 10%, rgba(255,252,240,.8), transparent 45%),
+      radial-gradient(ellipse at 90% 90%, rgba(170,120,70,.35), transparent 50%),
+      radial-gradient(ellipse at 50% 50%, transparent 55%, rgba(120,80,40,.28) 100%),
+      linear-gradient(170deg, #f7ecd6, #e9d5b0);
+    clip-path: polygon(
+      0% 1.2%, 4% 0%, 11% .8%, 19% 0%, 28% .6%, 37% 0%, 46% .9%, 55% 0%, 64% .5%, 73% 0%, 82% .8%, 91% 0%, 100% 1%,
+      99.4% 9%, 100% 18%, 99.2% 29%, 100% 41%, 99.5% 53%, 100% 66%, 99.3% 78%, 100% 90%, 99.6% 98%,
+      91% 100%, 82% 99.3%, 73% 100%, 64% 99.2%, 55% 100%, 46% 99.4%, 37% 100%, 28% 99.1%, 19% 100%, 10% 99.4%, 0% 100%,
+      .6% 90%, 0% 79%, .8% 67%, 0% 55%, .5% 43%, 0% 31%, .7% 19%, 0% 8%
+    );
+    text-align: center;
+  }
+  .card::before {
+    content: "";
+    position: absolute;
+    inset: 12px;
+    border: 1px solid rgba(110,75,45,.22);
+    pointer-events: none;
+  }
+  .card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 20% 80%, rgba(120,70,30,.12) 0 2px, transparent 3px),
+                radial-gradient(circle at 75% 30%, rgba(120,70,30,.1) 0 1.5px, transparent 2.5px),
+                radial-gradient(circle at 60% 70%, rgba(120,70,30,.12) 0 2px, transparent 3px);
+    pointer-events: none;
+  }
+
+  .card p {
+    position: relative;
+    z-index: 1;
+    font-size: var(--text-size);
+    line-height: 1.6;
+    margin-bottom: .75em;
+    text-align: justify;
+    text-align-last: center;
+    hyphens: none;
+    word-break: normal;
+    overflow-wrap: normal;
+  }
+  .card p:last-child { margin-bottom: 0; }
+
+  .divider {
+    position: relative;
+    z-index: 1;
+    display: block;
+    width: 70px;
+    height: 1px;
+    margin: 0 auto 1em;
+    background: var(--line);
+  }
+  .divider::after {
+    content: "❦";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -52%);
+    background: #f2e3c8;
+    padding: 0 .5rem;
+    color: var(--rose);
+    font-size: .85rem;
+  }
+
+  /* Decoraciones */
+  .deco {
+    position: relative;
+    z-index: 1;
+    display: block;
+    width: clamp(90px, min(20vw, 16vh), 130px);
+    height: auto;
+    margin: 0 auto .6em;
+    filter: drop-shadow(0 6px 8px rgba(60,35,20,.25));
+    animation: bob 5s ease-in-out infinite;
+  }
+  @keyframes bob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+  }
+
+  /* GIFs decorativos en la parte inferior de la hoja */
+  .outside-gif {
+    position: relative;
+    z-index: 1;
+    display: block;
+    width: clamp(150px, 34vw, 240px);
+    max-height: 22vh;
+    height: auto;
+    margin-top: 1rem;
+    object-fit: contain;
+    filter: drop-shadow(0 6px 10px rgba(60,35,20,.2));
+  }
+
+  /* Página final: solo el GIF sobre fondo del mismo color */
+  .page.final {
+    padding: 1.5rem;
+    background: #F7EDE8;
+  }
+  .page.final img {
+    display: block;
+    width: min(80vw, 460px);
+    max-height: 70vh;
+    height: auto;
+    object-fit: contain;
+  }
+
+  /* Portada: sobre de papel kraft */
+  #cover .sheet { width: min(380px, 88%); }
+  #cover .card {
+    padding: 2.2rem 1.8rem 2rem;
+    background-color: #d6b98c;
+    background-image:
+      var(--noise),
+      radial-gradient(ellipse at 30% 20%, rgba(255,235,200,.35), transparent 50%),
+      linear-gradient(180deg, #dcc196, #c9a674);
+    cursor: pointer;
+    transition: transform .5s var(--ease);
+  }
+  #cover .card:hover { transform: translateY(-4px); }
+  #cover .card::before { border-color: rgba(90,55,25,.3); }
+  #cover .flap {
+    position: absolute;
+    left: 0; right: 0; top: 0;
+    height: 52%;
+    background: linear-gradient(180deg, #e2c79c, #d2b07e);
+    clip-path: polygon(0 0, 100% 0, 50% 100%);
+    box-shadow: inset 0 -6px 8px rgba(90,55,25,.15);
+    pointer-events: none;
+    z-index: 1;
+  }
+  .seal {
+    position: relative;
+    z-index: 2;
+    width: 58px;
+    height: 58px;
+    margin: 1.2rem auto 1rem;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #c06464, #7d2f2f 70%);
+    box-shadow: inset 0 -3px 6px rgba(0,0,0,.35), 0 4px 8px rgba(60,20,20,.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #f6e4d4;
+    font-size: 1.3rem;
+  }
+  .cover-title { position: relative; z-index: 1; font-size: calc(var(--text-size) * 1.3); font-weight: 600; letter-spacing: .05em; }
+  .cover-hint { position: relative; z-index: 1; margin-top: .6em; letter-spacing: .04em; }
+
+  /* Polaroids */
+  .polaroids {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem .8rem;
+    margin-top: .8rem;
+  }
+  .polaroid {
+    background: #fbf7ef;
+    padding: 6px 6px 22px;
+    box-shadow: 0 6px 14px rgba(60,35,20,.3);
+    transform: rotate(var(--r, 0deg));
+    transition: transform .4s var(--ease);
+  }
+  .polaroid:hover { transform: rotate(0) scale(1.03); }
+  .polaroid:nth-child(1) { --r: -2.5deg; }
+  .polaroid:nth-child(2) { --r: 2deg; }
+  .polaroid:nth-child(3) { --r: 1.5deg; }
+  .polaroid:nth-child(4) { --r: -2deg; }
+  .polaroid img {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    display: block;
+    background: #e8dccb;
+  }
+
+  /* Controles */
+  .controls {
+    position: fixed;
+    left: 0; right: 0;
+    bottom: calc(env(safe-area-inset-bottom) + .8rem);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .6rem;
+    padding: 0 1rem;
+    z-index: 20;
+    pointer-events: none;
+  }
+  .controls > * { pointer-events: auto; }
+  .controls.hidden { display: none; }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .4rem;
+    height: 44px;
+    min-width: 44px;
+    padding: 0 1rem;
+    border-radius: 999px;
+    border: 1px solid rgba(90,60,40,.35);
+    background: rgba(252,246,236,.92);
+    color: var(--ink);
+    font: inherit;
+    font-size: 1rem;
+    letter-spacing: .03em;
+    cursor: pointer;
+    box-shadow: 0 6px 16px rgba(60,35,20,.22);
+    transition: background .3s, transform .3s var(--ease), opacity .3s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn:hover { background: #fff; transform: translateY(-2px); }
+  .btn:active { transform: scale(.96); }
+  .btn:focus-visible { outline: 2px solid var(--rose); outline-offset: 3px; }
+  .btn[disabled] { opacity: 0; pointer-events: none; }
+  .btn.primary { background: var(--rose); border-color: transparent; color: #fff8f0; }
+  .btn.primary:hover { background: #955b63; }
+
+  .progress {
+    position: fixed;
+    top: 0; left: 0;
+    height: 3px;
+    width: 0;
+    background: var(--rose);
+    z-index: 30;
+    transition: width .6s var(--ease);
+  }
+
+  .counter {
+    position: fixed;
+    top: calc(env(safe-area-inset-top) + .9rem);
+    right: 1rem;
+    font-size: .95rem;
+    color: var(--ink);
+    background: rgba(252,246,236,.88);
+    padding: .25rem .75rem;
+    border-radius: 999px;
+    z-index: 20;
+    box-shadow: 0 4px 10px rgba(60,35,20,.18);
+  }
+
+  /* Pétalos */
+  #petals {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 5;
+  }
+  .petal {
+    position: absolute;
+    top: -8%;
+    width: var(--s, 14px);
+    height: calc(var(--s, 14px) * 1.35);
+    background: var(--c, #e7b8bf);
+    border-radius: 0 70% 0 70%;
+    opacity: .75;
+    animation: drift var(--d, 9s) linear forwards;
+    filter: drop-shadow(0 1px 1px rgba(90,40,40,.2));
+  }
+  @keyframes drift {
+    0%   { transform: translate3d(0, 0, 0) rotate(0deg); }
+    25%  { transform: translate3d(var(--x, 30px), 27vh, 0) rotate(120deg); }
+    50%  { transform: translate3d(calc(var(--x, 30px) * -.6), 52vh, 0) rotate(240deg); }
+    75%  { transform: translate3d(var(--x, 30px), 78vh, 0) rotate(330deg); }
+    100% { transform: translate3d(calc(var(--x, 30px) * .3), 115vh, 0) rotate(420deg); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .petal, .page, .deco { animation: none !important; transition: none !important; }
+  }
+
+  @media (max-width: 480px) {
+    .btn .label { display: none; }
+    .btn { padding: 0; width: 44px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+<div class="counter" id="counter"></div>
+<div id="petals" aria-hidden="true"></div>
+
+<!-- Portada -->
+<section class="page active" data-title="Inicio">
+  <div class="sheet">
+    <div class="card" id="envelope" role="button" tabindex="0" aria-label="Abrir la carta">
+      <div class="flap" aria-hidden="true"></div>
+      <div class="seal" aria-hidden="true">✦</div>
+      <p class="cover-title">Para ti</p>
+      <span class="divider"></span>
+      <p class="cover-hint">Toca para abrir</p>
+    </div>
+  </div>
+</section>
+
+<!-- Página 1 -->
+<section class="page" data-title="1">
+  <div class="sheet"><div class="card">
+    <p>Hola pedacito de cielo, hice esta página web para ti. Solamente quiero recordarte que no hay un amor más grande en el mundo que el que yo siento por ti, y que no hay mujer más impecable y motivadora como tú.</p>
+    <p>Que no hay nada que me haga querer enamorarte mucho más cada día.</p>
+  </div></div>
+</section>
+
+<!-- Página 2 -->
+<section class="page" data-title="2">
+  <div class="sheet"><div class="card">
+    <p>Sé que amas los detalles, y amo que ames que te haga cosas tontas como esta. No verte durante tanto tiempo me hace querer expresarte lo mucho que te amo y lo mucho que te extraño de cualquier manera posible.</p>
+  </div></div>
+  <img class="outside-gif" src="gif1.gif" alt="">
+</section>
+
+<!-- Página 3: osito -->
+<section class="page" data-title="3">
+  <div class="sheet"><div class="card">
+    <p>Entiendo que muchas veces no estamos al 100% de batería, a veces hay problemas personales y en conjunto, o incluso a veces simplemente no, pero eso no significa que me alejaré de ti. Al contrario, te cuidaré desde la distancia y te amaré más cada segundo que me quede del resto de mi corta vida.</p>
+  </div></div>
+  <img class="outside-gif" src="gif2.gif" alt="">
+</section>
+
+<!-- Página 4: pingüino -->
+<section class="page" data-title="4">
+  <div class="sheet"><div class="card">
+    <img class="deco" src="pinguino.png" alt="Pingüino de peluche">
+    <p>Yo quiero ser el encargado de hacerte saber que el amor no duele, se sufre, pero no lastima, así como quiero que tú me enseñes lo que es sentir amor genuino desde el corazón. Aunque ya sabemos amarnos, quiero saber más de ti, quiero aprender todos los días algo nuevo y conocer desde el dato más tierno hasta el más nauseabundo de ti (erúctame en la cara, por favor).</p>
+  </div></div>
+</section>
+
+<!-- Página 5 -->
+<section class="page" data-title="5">
+  <div class="sheet"><div class="card">
+    <p>Me gusta sorprenderte, buscar la manera de sacarte una sonrisa y encontrar pequeños motivos para recordarte lo mucho que me importas, la prioridad tan grande que eres en mi vida. Quizá para otras personas sean simples detalles, pero para mí son algo especial, porque detrás de cada uno hay un poquito de lo que siento por ti.</p>
+    <p>Me gusta regalarte cosas, aunque sean pequeñas. Me gusta acordarme de ti cuando veo algo que te gustaría, algo que te haga decir "owww te amo, tierno", porque para mí esa pequeña sonrisa me hace darme cuenta de que todo ha valido la pena.</p>
+    <p>Siempre me invento alguna excusa para hacerte llegar un poquito de cariño, aunque no siempre encuentro la manera de explicarte cuánto me importas, así que intento hacerlo de otras formas. A veces una canción dice lo que no me atrevo a decirte, y un regalo termina llevando sentimientos que no caben en un mensaje.</p>
+    <p>Hoy puedo decir que no me da miedo que descubras que detrás de cada detalle hay alguien que está enamorado de ti.</p>
+  </div></div>
+</section>
+
+<!-- Página 6 -->
+<section class="page" data-title="6">
+  <div class="sheet"><div class="card">
+    <p>¿Y qué?</p>
+  </div></div>
+</section>
+
+<!-- Página 7 -->
+<section class="page" data-title="7">
+  <div class="sheet"><div class="card">
+    <p>¿Cómo voy a sentirme culpable de estar enamorado de alguien tan increíble como tú? Alguien tan dedicada, tan sentimental, tan motivadora, tan directa, tan graciosa, tan expresiva pero tan tímida a la vez, tan tierna, tan hermosa en cuerpo y alma, tan... tan tú.</p>
+    <p>Te amo más de lo que a veces puedo expresar con palabras. Amo cada pequeño detalle de ti: tu forma de ser, tu forma de hablar, tus chistes rancios e incluso esas pequeñas cosas que tú no notas, pero que para mí son lo más hermoso que hay en el mundo.</p>
+    <p>Quiero que entiendas que haga lo que haga, cualquier pequeña tontería que haga por ti no es para que me quieras. No estoy intentando comprar tu cariño ni acumulando puntos, y mucho menos son "favores" que tengas que devolver. Son muestras de lo que siento por ti.</p>
+    <p>Y claro que me gustaría que algún día también hagas cosas por mí, pero no quiero que lo hagas por obligación, ni quiero que me quieras solamente porque yo te quiero. Si te digo que te quiero, es para que sepas que te quiero.</p>
+  </div></div>
+</section>
+
+<!-- Página 8 -->
+<section class="page" data-title="8">
+  <div class="sheet"><div class="card">
+    <p>Para que sepas que te amo. Son 2 palabras muy fuertes, ¿no crees? "Te amo": la definición es un sentimiento profundo, sincero y comprometido hacia otra persona. Implica una conexión emocional fuerte que va más allá del afecto cotidiano.</p>
+    <p>¿Pero hay algo más grande que eso? Investigué si existe algo más profundo que un "Te amo":</p>
+    <p>"Eres mi hogar", "Amo quien soy cuando estoy contigo", "Te admiro", "Haces que el mundo sea un lugar mejor", "Gracias por existir". Mientras más buscaba una definición de lo que siento, más me daba cuenta de que no hay forma de decirte lo que siento por ti. Entonces solo me queda demostrártelo, esperando que puedas entender la magnitud de esas palabras.</p>
+  </div></div>
+</section>
+
+<!-- Página 9 -->
+<section class="page" data-title="9">
+  <div class="sheet"><div class="card">
+    <img class="deco" src="oso.png" alt="Osito de peluche">
+    <p>Quiero hacerte sentir que alguien te elige todos los días.</p>
+  </div></div>
+</section>
+
+<!-- Página 10 -->
+<section class="page" data-title="10">
+  <div class="sheet"><div class="card">
+    <p>Te amo.</p>
+  </div></div>
+</section>
+
+<!-- Página 11 -->
+<section class="page" data-title="Nosotros">
+  <div class="sheet"><div class="card">
+    <p>Corazón de melón, amorcito, chiquita hermosa, mujer de mi vida, mi amor.</p>
+    <div class="polaroids">
+      <div class="polaroid"><img src="foto1.jpg" alt="Foto 1"></div>
+      <div class="polaroid"><img src="foto2.jpg" alt="Foto 2"></div>
+      <div class="polaroid"><img src="foto3.jpg" alt="Foto 3"></div>
+      <div class="polaroid"><img src="foto4.jpg" alt="Foto 4"></div>
+    </div>
+  </div></div>
+</section>
+
+<!-- Página final: solo GIF -->
+<section class="page final" data-title="Final">
+  <img src="gif3.gif" alt="">
+</section>
+
+<!-- Controles -->
+<nav class="controls" id="controls" aria-label="Navegación">
+  <button class="btn" id="prevBtn" aria-label="Página anterior">←<span class="label">&nbsp;Anterior</span></button>
+  <button class="btn" id="homeBtn" aria-label="Volver al inicio">⌂<span class="label">&nbsp;Inicio</span></button>
+  <button class="btn primary" id="nextBtn" aria-label="Página siguiente"><span class="label">Siguiente&nbsp;</span>→</button>
+</nav>
+
+<script>
+(() => {
+  const pages = Array.from(document.querySelectorAll('.page'));
+  const controls = document.getElementById('controls');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const homeBtn = document.getElementById('homeBtn');
+  const counter = document.getElementById('counter');
+  const progress = document.getElementById('progress');
+  const petalsLayer = document.getElementById('petals');
+  const envelope = document.getElementById('envelope');
+  const last = pages.length - 1;
+  let current = 0;
+
+  function go(i) {
+    if (i < 0 || i > last || i === current) return;
+    const from = pages[current];
+    from.classList.remove('active');
+    from.classList.add('leaving');
+    setTimeout(() => from.classList.remove('leaving'), 700);
+
+    current = i;
+    const to = pages[current];
+    to.scrollTop = 0;
+    to.classList.add('active');
+    update();
+    history.replaceState(null, '', current === 0 ? '#' : '#' + current);
+  }
+
+  function update() {
+    // Portada: sin botones de navegación, solo el sobre
+    controls.classList.toggle('hidden', current === 0);
+    prevBtn.disabled = current === 0;
+    homeBtn.disabled = current === 0;
+    nextBtn.disabled = current === last;
+    nextBtn.style.visibility = current === last ? 'hidden' : 'visible';
+    counter.textContent = `${current} / ${last}`;
+    counter.style.display = current === 0 ? 'none' : 'block';
+    progress.style.width = (current / last * 100) + '%';
+    // Página final: sin pétalos, solo el GIF
+    const finalPage = current === last;
+    petalsLayer.style.display = finalPage ? 'none' : 'block';
+    if (finalPage) petalsLayer.innerHTML = '';
+    document.title = current === 0 ? 'Para ti' : `Para ti · ${pages[current].dataset.title}`;
+  }
+
+  prevBtn.addEventListener('click', () => go(current - 1));
+  nextBtn.addEventListener('click', () => go(current + 1));
+  homeBtn.addEventListener('click', () => go(0));
+  envelope.addEventListener('click', () => go(1));
+  envelope.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(1); } });
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'PageDown') go(current + 1);
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') go(current - 1);
+    else if (e.key === 'Home') go(0);
+  });
+
+  let sx = 0, sy = 0;
+  document.addEventListener('touchstart', e => {
+    sx = e.changedTouches[0].clientX;
+    sy = e.changedTouches[0].clientY;
+  }, { passive: true });
+  document.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - sx;
+    const dy = e.changedTouches[0].clientY - sy;
+    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) go(dx < 0 ? current + 1 : current - 1);
+  }, { passive: true });
+
+  const colors = ['#e9bcc3', '#d99aa5', '#f1d3d8', '#c98c94', '#e4c7b0'];
+  function spawnPetal() {
+    if (current === last) return;
+    const p = document.createElement('span');
+    p.className = 'petal';
+    p.style.setProperty('--s', (9 + Math.random() * 12) + 'px');
+    p.style.setProperty('--c', colors[Math.floor(Math.random() * colors.length)]);
+    p.style.setProperty('--x', (Math.random() * 90 - 45) + 'px');
+    p.style.setProperty('--d', (8 + Math.random() * 7) + 's');
+    p.style.left = Math.random() * 100 + '%';
+    petalsLayer.appendChild(p);
+    setTimeout(() => p.remove(), 16000);
+  }
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    setInterval(spawnPetal, 650);
+    for (let i = 0; i < 6; i++) setTimeout(spawnPetal, i * 300);
+  }
+
+  const fromHash = parseInt(location.hash.slice(1), 10);
+  if (!isNaN(fromHash) && fromHash > 0 && fromHash <= last) {
+    pages[0].classList.remove('active');
+    current = fromHash;
+    pages[current].classList.add('active');
+  }
+  update();
+})();
+</script>
+</body>
+</html>
